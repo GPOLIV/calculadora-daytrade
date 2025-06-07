@@ -156,7 +156,10 @@ if st.session_state.operacoes:
     
 # === SANDBOX: SIMULAÇÃO COM CAPITAL VIRTUAL ===
 st.markdown("---")
-with st.expander("🧪 Modo Sandbox – Simulação com Capital Virtual"):
+# Debug: Mostrar variáveis de sessão
+st.write("Variáveis de sessão:", st.session_state.keys())
+sandbox_expander = st.expander("🧪 Modo Sandbox – Simulação com Capital Virtual", expanded=True)  # <- expanded=True
+with sandbox_expander:
     st.header("🧪 Simulador de Trade com Capital Virtual")
 
     if 'sandbox_saldo' not in st.session_state:
