@@ -21,7 +21,7 @@ def salvar_csv(dados, caminho="dados/operacoes_salvas.csv"):
         st.error(f"Erro ao salvar CSV: {e}")
 
 # === TÍTULO PRINCIPAL COM TAMANHO AJUSTADO ===
-st.markdown("<h3>📊 Calculadora de Posição para Day Trade</h3>", unsafe_allow_html=True)
+st.title("📊 Calculadora de Posição para Day Trade")
 st.caption("💡 Otimizada para Forex, Criptomoedas e XAUUSD")
 
 # === BARRA LATERAL DE CONFIGURAÇÃO ===
@@ -188,7 +188,7 @@ if st.session_state.operacoes:
 
 # === SANDBOX: SIMULAÇÃO COM CAPITAL VIRTUAL ===
 st.markdown("---")
-sandbox_expander = st.expander("🧪 Modo Sandbox – Simulação com Capital Virtual", expanded=True)
+sandbox_expander = st.expander("🧪 Simulação com Capital Virtual", expanded=True)
 with sandbox_expander:
     st.header("🧪 Simulador de Trade com Capital Virtual")
 
