@@ -28,21 +28,50 @@ st.caption("💡 Otimizada para Forex, Criptomoedas e XAUUSD")
 with st.sidebar:
     st.header("⚙️ Configurações da Operação")
 
-    capital_total = st.number_input("💰 Capital Total (USD)", min_value=0.0, value=1000.0, help="Valor disponível na conta da corretora.")
-    risco_pct = st.slider("🎯 Risco por operação (%)", 0.1, 10.0, 1.0, 0.1, help="Quanto você deseja arriscar do seu capital em %.")
+    capital_total = st.number_input(
+        "💰 Capital Total (USD)", 
+        min_value=0.0, 
+        value=1000.0, 
+        help="Valor disponível na conta da corretora."
+    )
+    risco_pct = st.slider(
+        "🎯 Risco por operação (%)", 
+        0.1, 
+        10.0, 
+        1.0, 
+        0.1, 
+        help="Quanto você deseja arriscar do seu capital em %."
+    )
 
     # === STOP LOSS COM EXPLICAÇÃO ===
-    stop_loss = st.number_input("🛑 Stop Loss (em pontos/pips — ex: 50 = 5.0 pips)", min_value=0.1, value=50.0, help="Use pontos, e lembre-se: 10 pontos = 1 pip para muitos pares.")
-    st.tooltip("Use pontos, e lembre-se: 10 pontos = 1 pip para muitos pares.")
+    stop_loss = st.number_input(
+        "🛑 Stop Loss (em pontos/pips — ex: 50 = 5.0 pips)", 
+        min_value=0.1, 
+        value=50.0, 
+        help="Use pontos, e lembre-se: 10 pontos = 1 pip para muitos pares."
+    )
 
-    take_profit = st.number_input("🎯 Take Profit (em pontos/pips)", min_value=0.1, value=100.0, help="Distância alvo para lucro. 10 pontos = 1 pip.")
-    ativo = st.text_input("📈 Ativo (ex: EURUSD, BTCUSD, XAUUSD)", value="XAUUSD")
+    take_profit = st.number_input(
+        "🎯 Take Profit (em pontos/pips)", 
+        min_value=0.1, 
+        value=100.0, 
+        help="Distância alvo para lucro. 10 pontos = 1 pip."
+    )
+    ativo = st.text_input(
+        "📈 Ativo (ex: EURUSD, BTCUSD, XAUUSD)", 
+        value="XAUUSD"
+    )
 
     modo_manual = st.checkbox("📝 Inserir lote manualmente?", value=False)
 
     # === VALOR AUTOMATIZADO POR ATIVO ===
     if modo_manual:
-        lote_manual = st.number_input("✍️ Lote manual", min_value=0.01, value=0.1, step=0.01)
+        lote_manual = st.number_input(
+            "✍️ Lote manual", 
+            min_value=0.01, 
+            value=0.1, 
+            step=0.01
+        )
         if ativo[:3] == "XAU":
             valor_pip = 1.0 * lote_manual
         elif ativo[:3] == "BTC":
@@ -58,6 +87,7 @@ with st.sidebar:
             "BTCUSD": 5.0
         }.get(ativo.upper(), 10.0)
         st.number_input("💵 Valor por pip (USD)", value=valor_pip, disabled=True)
+
 
 # === CÁLCULOS ===
 st.subheader("📌 Resultado da Operação")
