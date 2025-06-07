@@ -21,7 +21,7 @@ def salvar_csv(dados, caminho="dados/operacoes_salvas.csv"):
         st.error(f"Erro ao salvar CSV: {e}")
 
 # === TÍTULO PRINCIPAL COM TAMANHO AJUSTADO ===
-st.markdown("<h3>📊 Calculadora de Posição para Day Trade</h3>", unsafe_allow_html=True)
+st.title("📊 Calculadora de Posição para Day Trade")
 st.caption("💡 Otimizada para Forex, Criptomoedas e XAUUSD")
 
 # === BARRA LATERAL DE CONFIGURAÇÃO ===
