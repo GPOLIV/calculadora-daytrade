@@ -153,3 +153,61 @@ if st.session_state.operacoes:
         file_name="relatorio_daytrade.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+    
+# === SANDBOX: SIMULAÇÃO COM CAPITAL VIRTUAL ===
+st.markdown("---")
+# Debug: Mostrar variáveis de sessão
+st.write("Variáveis de sessão:", st.session_state.keys())
+sandbox_expander = st.expander("🧪 Modo Sandbox – Simulação com Capital Virtual", expanded=True)  # <- expanded=True
+with sandbox_expander:
+    st.header("🧪 Simulador de Trade com Capital Virtual")
+
+    if 'sandbox_saldo' not in st.session_state:
+        st.session_state.sandbox_saldo = 1000.0  # valor inicial padrão
+        st.session_state.sandbox_historico = []
+
+    capital_virtual = st.number_input(
+        "💼 Capital Inicial Virtual", min_value=100.0, value=st.session_state.sandbox_saldo,
+        help="Você pode redefinir o valor inicial de simulação se quiser recomeçar.")
+
+    if st.button("🔄 Redefinir Saldo"):
+        st.session_state.sandbox_saldo = capital_virtual
+        st.session_state.sandbox_historico = []
+        st.success(f"Saldo virtual redefinido para ${capital_virtual:.2f}")
+
+    st.markdown("### 🎯 Simular Trade")
+
+    sandbox_direcao = st.selectbox("📊 Direção do trade", ["Compra", "Venda"])
+    sandbox_resultado = st.selectbox("📈 Resultado da operação", ["Hit TP (Lucro)", "Hit SL (Prejuízo)"])
+
+    if st.button("✅ Executar Simulação"):
+        resultado = simular_risco_retorno(capital_virtual, lote, stop_loss, take_profit, valor_pip)
+        ganho = resultado["retorno_total"] if sandbox_resultado == "Hit TP (Lucro)" else -resultado["risco_total"]
+        st.session_state.sandbox_saldo += ganho
+
+        nova_linha = {
+            "Direção": sandbox_direcao,
+            "Resultado": sandbox_resultado,
+            "Lucro/Prejuízo": round(ganho, 2),
+            "Saldo Atual": round(st.session_state.sandbox_saldo, 2)
+        }
+
+        st.session_state.sandbox_historico.append(nova_linha)
+        st.success(f"Simulação registrada. Saldo atual: ${st.session_state.sandbox_saldo:.2f}")
+
+    if st.session_state.sandbox_historico:
+        st.markdown("### 📜 Histórico da Simulação")
+        df_sandbox = pd.DataFrame(st.session_state.sandbox_historico)
+        st.dataframe(df_sandbox)
+
+        import io
+        buffer = io.BytesIO()
+        df_sandbox.to_excel(buffer, index=False, engine='openpyxl')
+        buffer.seek(0)
+
+        st.download_button(
+            label="⬇️ Baixar histórico do Sandbox (Excel)",
+            data=buffer,
+            file_name="historico_sandbox.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
