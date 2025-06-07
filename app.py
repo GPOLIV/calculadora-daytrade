@@ -186,7 +186,7 @@ if st.session_state.operacoes:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
-# === SANDBOX: SIMULAÇÃO COM CAPITAL VIRTUAL ===
+# === FUNCIONALIDADE: SIMULAÇÃO COM CAPITAL VIRTUAL ===
 st.markdown("---")
 sandbox_expander = st.expander("🧪 Simulação com Capital Virtual", expanded=True)
 with sandbox_expander:
