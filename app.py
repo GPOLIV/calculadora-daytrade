@@ -32,7 +32,7 @@ with st.sidebar:
     risco_pct = st.slider("🎯 Risco por operação (%)", 0.1, 10.0, 1.0, 0.1, help="Quanto você deseja arriscar do seu capital em %.")
 
     # === STOP LOSS COM EXPLICAÇÃO ===
-    stop_loss = st.number_input("🛑 Stop Loss (em pontos/pips — ex: 50 = 5.0 pips)", min_value=0.1, value=50.0)
+    stop_loss = st.number_input("🛑 Stop Loss (em pontos/pips — ex: 50 = 5.0 pips)", min_value=0.1, value=50.0, help="Use pontos, e lembre-se: 10 pontos = 1 pip para muitos pares.")
     st.tooltip("Use pontos, e lembre-se: 10 pontos = 1 pip para muitos pares.")
 
     take_profit = st.number_input("🎯 Take Profit (em pontos/pips)", min_value=0.1, value=100.0, help="Distância alvo para lucro. 10 pontos = 1 pip.")
