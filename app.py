@@ -1,4 +1,4 @@
-# app.py
+# Melhorias implementadas para atender aos requisitos do usuário.
 
 import streamlit as st
 import pandas as pd
@@ -8,13 +8,11 @@ from calculadora.calculadora import calcular_posicao
 from calculadora.simulador import simular_risco_retorno
 from calculadora.risco_avancado import gerar_alertas
 
-# === CONFIG INICIAL ===
 st.set_page_config(page_title="Calculadora Day Trade", layout="centered")
 
 if 'operacoes' not in st.session_state:
     st.session_state.operacoes = []
 
-# === FUNÇÃO AUXILIAR PARA SALVAR CSV ===
 def salvar_csv(dados, caminho="dados/operacoes_salvas.csv"):
     try:
         df = pd.DataFrame(dados)
@@ -22,24 +20,58 @@ def salvar_csv(dados, caminho="dados/operacoes_salvas.csv"):
     except Exception as e:
         st.error(f"Erro ao salvar CSV: {e}")
 
-# === TÍTULO PRINCIPAL ===
-st.title("📊 Calculadora de Posição para Day Trade")
+# === TÍTULO PRINCIPAL COM TAMANHO AJUSTADO ===
+st.markdown("<h3>📊 Calculadora de Posição para Day Trade</h3>", unsafe_allow_html=True)
 st.caption("💡 Otimizada para Forex, Criptomoedas e XAUUSD")
 
 # === BARRA LATERAL DE CONFIGURAÇÃO ===
 with st.sidebar:
     st.header("⚙️ Configurações da Operação")
 
-    capital_total = st.number_input("💰 Capital Total (USD)", min_value=0.0, value=1000.0, help="Valor disponível na conta da corretora.")
-    risco_pct = st.slider("🎯 Risco por operação (%)", 0.1, 10.0, 1.0, 0.1, help="Quanto você deseja arriscar do seu capital em %.")
-    stop_loss = st.number_input("🛑 Stop Loss (em pips/pontos)", min_value=0.1, value=50.0, help="Distância do preço até o stop.")
-    take_profit = st.number_input("🎯 Take Profit (em pips/pontos)", min_value=0.1, value=100.0, help="Distância alvo para lucro.")
-    ativo = st.text_input("📈 Ativo (ex: EURUSD, BTCUSD, XAUUSD)", value="XAUUSD")
+    capital_total = st.number_input(
+        "💰 Capital Total (USD)", 
+        min_value=0.0, 
+        value=1000.0, 
+        help="Valor disponível na conta da corretora."
+    )
+    risco_pct = st.slider(
+        "🎯 Risco por operação (%)", 
+        0.1, 
+        10.0, 
+        1.0, 
+        0.1, 
+        help="Quanto você deseja arriscar do seu capital em %."
+    )
+
+    # === STOP LOSS COM EXPLICAÇÃO ===
+    stop_loss = st.number_input(
+        "🛑 Stop Loss (em pontos/pips — ex: 50 = 5.0 pips)", 
+        min_value=0.1, 
+        value=50.0, 
+        help="Use pontos, e lembre-se: 10 pontos = 1 pip para muitos pares."
+    )
+
+    take_profit = st.number_input(
+        "🎯 Take Profit (em pontos/pips)", 
+        min_value=0.1, 
+        value=100.0, 
+        help="Distância alvo para lucro. 10 pontos = 1 pip."
+    )
+    ativo = st.text_input(
+        "📈 Ativo (ex: EURUSD, BTCUSD, XAUUSD)", 
+        value="XAUUSD"
+    )
 
     modo_manual = st.checkbox("📝 Inserir lote manualmente?", value=False)
 
+    # === VALOR AUTOMATIZADO POR ATIVO ===
     if modo_manual:
-        lote_manual = st.number_input("✍️ Lote manual", min_value=0.01, value=0.1, step=0.01)
+        lote_manual = st.number_input(
+            "✍️ Lote manual", 
+            min_value=0.01, 
+            value=0.1, 
+            step=0.01
+        )
         if ativo[:3] == "XAU":
             valor_pip = 1.0 * lote_manual
         elif ativo[:3] == "BTC":
@@ -48,7 +80,14 @@ with st.sidebar:
             valor_pip = 10.0 * lote_manual
         st.info(f"💵 Valor estimado por pip: ${valor_pip:.2f}")
     else:
-        valor_pip = st.number_input("💵 Valor por pip (USD)", min_value=0.01, value=0.10)
+        # Definir valor automaticamente com base no ativo
+        valor_pip = {
+            "EURUSD": 10.0,
+            "XAUUSD": 1.0,
+            "BTCUSD": 5.0
+        }.get(ativo.upper(), 10.0)
+        st.number_input("💵 Valor por pip (USD)", value=valor_pip, disabled=True)
+
 
 # === CÁLCULOS ===
 st.subheader("📌 Resultado da Operação")
@@ -71,7 +110,7 @@ if lote > 1:
 
 st.write(f"💸 Risco estimado: `${risco_valor:.2f}`")
 st.write(f"🟢 Retorno esperado: `${simulacao['retorno_total']:.2f}`")
-st.write(f"⚖️ Relação R/R: `{simulacao['rr']} : 1`")
+st.write(f"⚖️ Risco/Retorno: `1 para {simulacao['rr']:.2f}`")
 
 # === BOTÃO SALVAR ===
 if st.button("💾 Salvar operação"):
@@ -85,9 +124,8 @@ if st.button("💾 Salvar operação"):
     st.session_state.operacoes.append(nova_op)
     salvar_csv(st.session_state.operacoes)
     st.success("✅ Operação salva com sucesso!")
-    
-    alertas = gerar_alertas(st.session_state.operacoes, ativo, capital_total)
 
+    alertas = gerar_alertas(st.session_state.operacoes, ativo, capital_total)
     if alertas:
         st.warning("⚠️ Alertas de risco detectados:")
         for alerta in alertas:
@@ -95,80 +133,71 @@ if st.button("💾 Salvar operação"):
 
 # === HISTÓRICO DE OPERAÇÕES ===
 if st.session_state.operacoes:
-    st.subheader("📁 Histórico de Operações")
-    df_ops = pd.DataFrame(st.session_state.operacoes)
-    st.dataframe(df_ops)
+    with st.expander("📁 Histórico de Operações"):
+        df_ops = pd.DataFrame(st.session_state.operacoes)
+        st.dataframe(df_ops)
 
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("📤 Exportar CSV"):
-            salvar_csv(st.session_state.operacoes)
-            st.success("Exportado para dados/operacoes_salvas.csv")
-
-    with col2:
-        if st.button("🗑️ Limpar histórico"):
-            st.session_state.operacoes = []
-            if os.path.exists("dados/operacoes_salvas.csv"):
-                os.remove("dados/operacoes_salvas.csv")
-            st.warning("Histórico apagado!")
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("📤 Exportar CSV"):
+                salvar_csv(st.session_state.operacoes)
+                st.success("Exportado para dados/operacoes_salvas.csv")
+        with col2:
+            if st.button("🗑️ Limpar histórico"):
+                st.session_state.operacoes = []
+                if os.path.exists("dados/operacoes_salvas.csv"):
+                    os.remove("dados/operacoes_salvas.csv")
+                st.warning("Histórico apagado!")
 
 # === RELATÓRIO AVANÇADO ===
 if st.session_state.operacoes:
-    st.subheader("📊 Relatório e Análise Avançada")
+    with st.expander("📊 Relatório e Análise Avançada"):
+        df = pd.DataFrame(st.session_state.operacoes)
 
-    df = pd.DataFrame(st.session_state.operacoes)
+        col1, col2 = st.columns(2)
+        filtro_ativo = col1.selectbox("Filtrar por ativo", options=["Todos"] + sorted(df["Ativo"].unique().tolist()))
+        filtro_rr = col2.slider("Filtrar por R/R mínimo", min_value=0.0, max_value=5.0, value=0.0, step=0.1)
 
-    # Filtros
-    col1, col2 = st.columns(2)
-    filtro_ativo = col1.selectbox("Filtrar por ativo", options=["Todos"] + sorted(df["Ativo"].unique().tolist()))
-    filtro_rr = col2.slider("Filtrar por R/R mínimo", min_value=0.0, max_value=5.0, value=0.0, step=0.1)
+        df_filtrado = df.copy()
+        if filtro_ativo != "Todos":
+            df_filtrado = df_filtrado[df_filtrado["Ativo"] == filtro_ativo]
+        df_filtrado = df_filtrado[df_filtrado["R/R"] >= filtro_rr]
 
-    df_filtrado = df.copy()
-    if filtro_ativo != "Todos":
-        df_filtrado = df_filtrado[df_filtrado["Ativo"] == filtro_ativo]
-    df_filtrado = df_filtrado[df_filtrado["R/R"] >= filtro_rr]
+        st.dataframe(df_filtrado)
 
-    st.dataframe(df_filtrado)
+        st.markdown("### 📈 Estatísticas Gerais")
+        st.write(f"📌 Total de operações: {len(df_filtrado)}")
+        st.write(f"💸 Risco médio: ${df_filtrado['Risco ($)'].mean():.2f}")
+        st.write(f"🟢 Retorno médio: ${df_filtrado['Retorno ($)'].mean():.2f}")
+        st.write(f"⚖️ R/R médio: {df_filtrado['R/R'].mean():.2f}")
 
-    # Estatísticas básicas
-    st.markdown("### 📈 Estatísticas Gerais")
-    st.write(f"📌 Total de operações: {len(df_filtrado)}")
-    st.write(f"💸 Risco médio: ${df_filtrado['Risco ($)'].mean():.2f}")
-    st.write(f"🟢 Retorno médio: ${df_filtrado['Retorno ($)'].mean():.2f}")
-    st.write(f"⚖️ R/R médio: {df_filtrado['R/R'].mean():.2f}")
+        st.markdown("### 📊 Gráfico Risco vs Retorno")
+        chart_data = df_filtrado[["Risco ($)", "Retorno ($)"]]
+        st.bar_chart(chart_data)
 
-    # Gráfico de barras
-    st.markdown("### 📊 Gráfico Risco vs Retorno")
-    chart_data = df_filtrado[["Risco ($)", "Retorno ($)"]]
-    st.bar_chart(chart_data)
+        buffer = io.BytesIO()
+        df_filtrado.to_excel(buffer, index=False, engine='openpyxl')
+        buffer.seek(0)
 
-    # Exportar CSV novamente, se desejar
-    buffer = io.BytesIO()
-    df_filtrado.to_excel(buffer, index=False, engine='openpyxl')
-    buffer.seek(0)
+        st.download_button(
+            label="⬇️ Baixar relatório em Excel",
+            data=buffer,
+            file_name="relatorio_daytrade.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
-    st.download_button(
-        label="⬇️ Baixar relatório em Excel",
-        data=buffer,
-        file_name="relatorio_daytrade.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-    
 # === SANDBOX: SIMULAÇÃO COM CAPITAL VIRTUAL ===
 st.markdown("---")
-# Debug: Mostrar variáveis de sessão
-st.write("Variáveis de sessão:", st.session_state.keys())
-sandbox_expander = st.expander("🧪 Modo Sandbox – Simulação com Capital Virtual", expanded=True)  # <- expanded=True
+sandbox_expander = st.expander("🧪 Modo Sandbox – Simulação com Capital Virtual", expanded=True)
 with sandbox_expander:
     st.header("🧪 Simulador de Trade com Capital Virtual")
 
     if 'sandbox_saldo' not in st.session_state:
-        st.session_state.sandbox_saldo = 1000.0  # valor inicial padrão
+        st.session_state.sandbox_saldo = 1000.0
         st.session_state.sandbox_historico = []
 
-    capital_virtual = st.number_input(
-        "💼 Capital Inicial Virtual", min_value=100.0, value=st.session_state.sandbox_saldo,
-        help="Você pode redefinir o valor inicial de simulação se quiser recomeçar.")
+    capital_virtual = st.number_input("💼 Capital Inicial Virtual", min_value=100.0, value=st.session_state.sandbox_saldo,
+                                      help="Você pode redefinir o valor inicial de simulação se quiser recomeçar.")
 
     if st.button("🔄 Redefinir Saldo"):
         st.session_state.sandbox_saldo = capital_virtual
@@ -200,7 +229,6 @@ with sandbox_expander:
         df_sandbox = pd.DataFrame(st.session_state.sandbox_historico)
         st.dataframe(df_sandbox)
 
-        import io
         buffer = io.BytesIO()
         df_sandbox.to_excel(buffer, index=False, engine='openpyxl')
         buffer.seek(0)
